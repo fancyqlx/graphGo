@@ -15,17 +15,19 @@ type Vertex struct {
 	id        int
 	neighbors []int
 	edges     map[int]int
-	inMsg     []Message
+	inMsg     []*Message
 	outMsg    map[Message]bool
 }
 
-// Leader is a struct for schedulering the algorithm
-// and collecting necessory information
-type Leader struct {
-	round          int
-	alpha, beta, t int
-	g              int
-	n, D           int
+// Graph is a struct for schedulering the algorithm,
+// collecting necessory information and storing all
+// the information of this graph
+type Graph struct {
+	Round            int
+	Alpha, Beta, T   int
+	Girth            int
+	Number, Diameter int
+	Vertices         []*Vertex
 }
 
 // NewMessage is a factory method for Message
@@ -42,7 +44,7 @@ func (msg *Message) Update(h, s, d int) {
 
 // NewVertex is a factory method for Vertex
 func NewVertex(i int) *Vertex {
-	return &Vertex{i, make([]int, 0), make(map[int]int), make([]Message, 0), make(map[Message]bool)}
+	return &Vertex{i, make([]int, 0), make(map[int]int), make([]*Message, 0), make(map[Message]bool)}
 }
 
 // Clean is a method for clear inMsg and outMsg of a vertex
@@ -57,3 +59,9 @@ func (v *Vertex) Clean() {
 func (v *Vertex) Sendto(i int) {
 
 }
+
+// NewGraph is a factory method
+func NewGraph() *Graph {
+	return &Graph{}
+}
+
