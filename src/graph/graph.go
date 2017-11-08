@@ -1,5 +1,8 @@
 package graph
 
+import "container/heap"
+import "math"
+
 // Message is a triple for sending among vertices
 type Message struct {
 	hop, src, dist int
@@ -11,12 +14,15 @@ type Message struct {
 // inMsg is a slice storing Messages from its neighbors
 // outMsg is a map storing Messages to its neighbors, the false value means the message has been sent
 // edges is a map storing values of edges between its neighbors and itself
+// Pre is a map for storing predecessors
 type Vertex struct {
 	id        int
 	neighbors map[int]bool
 	edges     map[int]int
+	Pre       map[int]int
 	inMsg     []*Message
-	outMsg    map[*Message]bool
+	msgList   map[int]*Message
+	outMsg    PriorityQueue
 }
 
 // Graph is a struct for schedulering the algorithm,
@@ -28,6 +34,7 @@ type Graph struct {
 	Girth            int
 	Number, Diameter int
 	Vertices         map[int]*Vertex
+	Next             bool
 }
 
 // NewMessage is a factory method for Message
@@ -44,7 +51,9 @@ func (msg *Message) Update(h, s, d int) {
 
 // NewVertex is a factory method for Vertex
 func NewVertex(i int) *Vertex {
-	return &Vertex{i, make(map[int]bool), make(map[int]int), make([]*Message, 0), make(map[*Message]bool)}
+	pq := make(PriorityQueue, 0)
+	heap.Init(&pq)
+	return &Vertex{i, make(map[int]bool), make(map[int]int), make(map[int]int), make([]*Message, 0), make(map[int]*Message), pq}
 }
 
 // AddNeighbor is a method for adding neighbor's id and weight value between them
@@ -58,15 +67,30 @@ func (v *Vertex) AddNeighbor(i int, w int) {
 
 // Clear is a method for clear inMsg and outMsg of a vertex
 func (v *Vertex) Clear() {
+	v.Pre = make(map[int]int)
 	v.inMsg = nil
-	v.outMsg = make(map[*Message]bool)
+	v.msgList = make(map[int]*Message)
+	v.outMsg = nil
 }
 
 // Sendto is a method for sending messages to its neighbors
 // This method will select i valid messages from outMsg, then
 // send them to vertex's neighbors
-func (v *Vertex) Sendto(i int) {
-
+func (v *Vertex) Sendto(g *Graph, i int) {
+	for ; i > -1; i-- {
+		item := heap.Pop(&v.outMsg).(*Item)
+		msg := item.value
+		for k := range v.neighbors {
+			if msg.dist+v.edges[k] <= g.T {
+				g.Vertices[k].inMsg = append(g.Vertices[k].inMsg, msg)
+			}
+		}
+		if _, ok := v.msgList[msg.src]; ok {
+			g.Next = true
+		} else {
+			v.msgList[msg.src] = msg
+		}
+	}
 }
 
 // NewGraph is a factory method
@@ -101,4 +125,22 @@ func (g *Graph) Clear() {
 	for _, v := range g.Vertices {
 		v.Clear()
 	}
+}
+
+// ComputeG is to compute g_v
+func (g *Graph) ComputeG() int {
+	gv := math.MaxInt32
+	for _, v := range g.Vertices {
+		for k := range v.neighbors {
+			for s := range v.msgList {
+				if msg, ok := g.Vertices[k].msgList[s]; ok {
+					value := v.msgList[s].dist + msg.dist
+					if value < gv {
+						gv = value
+					}
+				}
+			}
+		}
+	}
+	return gv
 }

@@ -5,9 +5,9 @@ import (
 	"os"
 )
 
-// Preprocess is used for reading graph data from files
+// ReadGraph is used for reading graph data from files
 // Then construct Graph struct and return a pointer to it
-func Preprocess(path string) *Graph {
+func ReadGraph(path string) *Graph {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)

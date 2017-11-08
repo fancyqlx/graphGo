@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	g := graph.Preprocess("../graphdata/data.in")
+	g := graph.ReadGraph("../graphdata/data.in")
 	graph.PrintGraph(g)
 }
