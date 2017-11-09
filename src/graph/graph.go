@@ -36,6 +36,7 @@ type Graph struct {
 	Number, Diameter int
 	Vertices         map[int]*Vertex
 	B                int
+	W                int
 	Next             bool
 }
 
@@ -114,6 +115,15 @@ func NewGraph() *Graph {
 	return &Graph{Vertices: make(map[int]*Vertex)}
 }
 
+// Init is a method used in the beginning of the algorithm
+// It initializes parameters of the graph
+func (g *Graph) Init(b int) {
+	g.Alpha = 3
+	g.Beta = g.Number * g.W
+	g.T = 1
+	g.B = b
+}
+
 // AddItem is used for adding a formated line from the graphdata
 // Item consists of source id, destination id and the edge weight between them
 func (g *Graph) AddItem(i, j, w int) {
@@ -134,6 +144,9 @@ func (g *Graph) AddItem(i, j, w int) {
 	}
 	g.Vertices[i].AddNeighbor(j, w)
 	g.Vertices[j].AddNeighbor(i, w)
+	if w > g.W {
+		g.W = w
+	}
 }
 
 // Clear is a method to clean all the cached data of vertices
@@ -141,6 +154,7 @@ func (g *Graph) Clear() {
 	for _, v := range g.Vertices {
 		v.Clear()
 	}
+	g.Next = false
 }
 
 // ComputeG is to compute g_v
@@ -193,6 +207,5 @@ func (g *Graph) Superstep() {
 				g.Beta = min(g.Beta, gv)
 			}
 		}
-		g.Clear()
 	}
 }
