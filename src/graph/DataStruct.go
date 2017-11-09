@@ -56,3 +56,10 @@ func (pq *PriorityQueue) update(item *Item, value *Message) {
 	item.value = value
 	heap.Fix(pq, item.index)
 }
+
+func min(a, b int) int {
+	if a <= b {
+		return a
+	}
+	return b
+}
