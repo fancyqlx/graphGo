@@ -20,7 +20,6 @@ type Vertex struct {
 	id        int
 	neighbors map[int]bool
 	edges     map[int]int
-	Pre       map[int]int
 	inMsg     []*Message
 	msgList   map[int]*Message
 	outMsg    PriorityQueue
@@ -57,9 +56,7 @@ func (msg *Message) Update(h, s, d, p int) {
 func NewVertex(i int) *Vertex {
 	pq := make(PriorityQueue, 0)
 	heap.Init(&pq)
-	msg := NewMessage(0, i, 0, -1)
-	heap.Push(&pq, &Item{value: msg})
-	return &Vertex{i, make(map[int]bool), make(map[int]int), make(map[int]int), make([]*Message, 0), make(map[int]*Message), pq}
+	return &Vertex{i, make(map[int]bool), make(map[int]int), make([]*Message, 0), make(map[int]*Message), pq}
 }
 
 // AddNeighbor is a method for adding neighbor's id and weight value between them
@@ -73,7 +70,6 @@ func (v *Vertex) AddNeighbor(i int, w int) {
 
 // Clear is a method for clear inMsg and outMsg of a vertex
 func (v *Vertex) Clear() {
-	v.Pre = make(map[int]int)
 	v.inMsg = nil
 	v.msgList = make(map[int]*Message)
 	v.outMsg = nil
@@ -83,13 +79,13 @@ func (v *Vertex) Clear() {
 // This method will select i valid messages from outMsg, then
 // send them to vertex's neighbors
 func (v *Vertex) Sendto(g *Graph, i int) {
-	for ; i > -1; i-- {
+	for ; i > -1 && len(v.outMsg) > 0; i-- {
 		item := heap.Pop(&v.outMsg).(*Item)
 		msg := item.value
-		msg.pre = v.id
 		for k := range v.neighbors {
-			if v.Pre[msg.src] != k && msg.dist+v.edges[k] <= g.T {
-				g.Vertices[k].inMsg = append(g.Vertices[k].inMsg, msg)
+			if msg.pre != k && msg.dist+v.edges[k] <= g.T {
+				msgforsend := NewMessage(msg.hop, msg.src, msg.dist, v.id)
+				g.Vertices[k].inMsg = append(g.Vertices[k].inMsg, msgforsend)
 			}
 		}
 		if _, ok := v.msgList[msg.src]; ok {
@@ -163,8 +159,8 @@ func (g *Graph) ComputeG() int {
 	for _, v := range g.Vertices {
 		for k := range v.neighbors {
 			for s := range v.msgList {
-				if msg, ok := g.Vertices[k].msgList[s]; ok && v.id != g.Vertices[k].Pre[s] && k != v.Pre[s] {
-					value := v.msgList[s].dist + msg.dist
+				if msg, ok := g.Vertices[k].msgList[s]; ok && v.id != msg.pre && k != v.msgList[s].pre {
+					value := v.msgList[s].dist + msg.dist + v.edges[k]
 					if value < gv {
 						gv = value
 					}
@@ -208,4 +204,27 @@ func (g *Graph) Superstep() {
 			}
 		}
 	}
+}
+
+// BoundedBFS is the main algorithm for computing girth
+func (g *Graph) BoundedBFS() {
+	for g.Beta-g.Alpha > 2 {
+		for _, v := range g.Vertices {
+			msg := NewMessage(0, v.id, 0, -1)
+			heap.Push(&v.outMsg, &Item{value: msg})
+		}
+
+		for !g.Next {
+			g.Superstep()
+			g.Round++
+		}
+		if g.T == (g.Alpha+g.Beta)/4 {
+			g.T++
+		} else {
+			g.T = (g.Alpha + g.Beta) / 4
+		}
+		g.Clear()
+		println(g.T, g.Alpha, g.Beta)
+	}
+	g.Girth = g.Beta
 }

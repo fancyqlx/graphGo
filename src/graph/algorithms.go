@@ -1,13 +1,11 @@
 package graph
 
-import "container/heap"
-
 // BellmanFord is the method for simulating Bellman-Ford algorithm
 func BellmanFord(g *Graph) {
 	// Initailize msgList from outMsg
 	for _, v := range g.Vertices {
-		item := heap.Pop(&v.outMsg).(*Item)
-		v.inMsg = append(v.inMsg, item.value)
+		msg := NewMessage(0, v.id, 0, -1)
+		v.inMsg = append(v.inMsg, msg)
 	}
 	// Bellman-Ford loop
 	for i := 0; i < g.Number; i++ {
@@ -44,5 +42,6 @@ func Diameter(g *Graph) int {
 			}
 		}
 	}
+	g.Clear()
 	return D
 }

@@ -48,8 +48,8 @@ func PrintVertex(v *Vertex) {
 	}
 	fmt.Println()
 	fmt.Printf("msgList: ")
-	for k, v := range v.msgList {
-		fmt.Printf("%d, %v ", k, v)
+	for _, v := range v.msgList {
+		fmt.Printf("%v ", v)
 	}
 	fmt.Println()
 }

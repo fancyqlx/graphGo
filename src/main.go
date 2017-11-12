@@ -8,8 +8,10 @@ func main() {
 	g := graph.ReadGraph("../graphdata/data.in")
 
 	g.Diameter = graph.Diameter(g)
-	for _, v := range g.Vertices {
+	g.Init(g.Number)
+	g.BoundedBFS()
+	/*for _, v := range g.Vertices {
 		graph.PrintVertex(v)
-	}
+	}*/
 	graph.PrintGraph(g)
 }
