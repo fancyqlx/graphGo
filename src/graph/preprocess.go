@@ -30,6 +30,26 @@ func ReadGraph(path string) *Graph {
 func PrintGraph(g *Graph) {
 	fmt.Printf("Rounds: %d\n", g.Round)
 	fmt.Printf("Girth: %d\n", g.Girth)
-	fmt.Printf("The number of the graph is %d\n", g.Number)
+	fmt.Printf("Number %d\n", g.Number)
 	fmt.Printf("Diameter: %d\n", g.Diameter)
+}
+
+// PrintVertex is used for printing the information of a vertex
+func PrintVertex(v *Vertex) {
+	fmt.Printf("id: %d\n", v.id)
+	fmt.Printf("Neighbors: ")
+	for k := range v.neighbors {
+		fmt.Printf("%d ", k)
+	}
+	fmt.Println()
+	fmt.Printf("inMsg: ")
+	for _, msg := range v.inMsg {
+		fmt.Printf("%v ", msg)
+	}
+	fmt.Println()
+	fmt.Printf("msgList: ")
+	for k, v := range v.msgList {
+		fmt.Printf("%d, %v ", k, v)
+	}
+	fmt.Println()
 }
